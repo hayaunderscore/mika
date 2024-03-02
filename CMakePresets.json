@@ -1,0 +1,50 @@
+{
+	"version": 6,
+	"configurePresets": [
+		{
+			"name": "default",
+			"displayName": "Ninja (Conan x86-64-mingw64)",
+			"description": "ninja from randy cunningham",
+			"generator": "Ninja",
+			"binaryDir": "${sourceDir}/build",
+			"cacheVariables": {
+				"CMAKE_C_COMPILER": "C:/msys64/mingw64/bin/gcc.exe",
+				"CMAKE_CXX_COMPILER": "C:/msys64/mingw64/bin/g++.exe",
+				"CMAKE_POLICY_DEFAULT_CMP0091": "NEW", 
+				"CMAKE_EXPORT_COMPILE_COMMANDS": "ON", 
+				"CMAKE_BUILD_TYPE": "Release"
+			}, 
+			"environment": {
+				"CMT_MINGW_PATH": "C:\\msys64\\mingw64\\bin", 
+				"PATH": "$env{CMT_MINGW_PATH};$penv{PATH}"
+			}
+		}, 
+		{
+			"name": "debug",
+			"inherits": "default",
+			"displayName": "Ninja (Conan x86-64-mingw64) (Debug)",
+			"description": "ninja.... but debug!",
+			"cacheVariables": {
+				"CMAKE_C_COMPILER": "C:/msys64/mingw64/bin/gcc.exe",
+				"CMAKE_CXX_COMPILER": "C:/msys64/mingw64/bin/g++.exe",
+				"CMAKE_POLICY_DEFAULT_CMP0091": "NEW", 
+				"CMAKE_EXPORT_COMPILE_COMMANDS": "ON", 
+				"CMAKE_BUILD_TYPE": "Debug"
+			}
+		}
+	], 
+	"buildPresets": [
+		{
+			"name": "default",
+			"displayName": "Ninja (Conan x86-64-mingw64)",
+			"configurePreset": "default", 
+			"jobs": 8
+		},
+		{
+			"name": "debug",
+			"displayName": "Ninja (Conan x86-64-mingw64) (Debug)",
+			"configurePreset": "debug", 
+			"jobs": 8
+		}
+	]
+}

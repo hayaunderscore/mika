@@ -26,6 +26,6 @@ const ldtk::Level* FabricateLevel(std::string levelName);
 // Draw all tiles on a specified render texture. Default layer to draw is `Level`.
 void RenderAllTiles(RenderTexture2D renderTex, std::string layer = "Level");
 // Get specific entity. Default layer to check for is `Entities`.
-ldtk::Entity AcquireEntity(std::string entityIdentifier, std::string layer = "Entities");
+const ldtk::Entity* AcquireEntity(std::string entityIdentifier, std::string layer = "Entities");
 // Get specific tile in world space. Default layer to check for is `Level`.
 TileInfo AcquireTileInfo(int x, int y, std::string layer = "Level");

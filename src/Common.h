@@ -7,8 +7,8 @@
 
 #include "raylib.h"
 
-constexpr int WINDOW_WIDTH = 640;
-constexpr int WINDOW_HEIGHT = 480;
+constexpr int WINDOW_WIDTH = 768;
+constexpr int WINDOW_HEIGHT = 432;
 
 extern RenderTexture2D defaultRender;
 
@@ -49,3 +49,16 @@ const char* GetSound(const char* path);
 const char* GetFont(const char* path);
 // Grabs an ldtk map
 const char* GetMap(const char* path);
+
+// ENUMS //
+
+// Direction. Taken from CSE2.
+enum Direction 
+{
+	DIR_LEFT,
+	DIR_UP,
+	DIR_RIGHT,
+	DIR_DOWN,
+	DIR_AUTO,
+	DIR_OTHER
+};

@@ -51,8 +51,15 @@ void RenderAllTiles(RenderTexture2D renderTex, std::string layer)
 	EndTextureMode();
 }
 
-ldtk::Entity AcquireEntity(std::string entityIdentifier, std::string layer)
+const ldtk::Entity* AcquireEntity(std::string entityIdentifier, std::string layer)
 {
+	const auto& _layer = level->getLayer(layer);
+	for (const ldtk::Entity& spawn : _layer.getEntitiesByName(entityIdentifier)) 
+	{
+		// find first instance
+		return &spawn;
+	}
+	return nullptr;
 }
 
 TileInfo AcquireTileInfo(int x, int y, std::string layer)

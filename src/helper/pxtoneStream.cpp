@@ -19,19 +19,7 @@ void pxtoneBaseCallback(void *buffer, unsigned int frames)
 	pxtn->Moo(buffer, bytes_to_do, NULL);
 }
 
-struct pxtnRaylibStream 
-{
-	pxtnService* pxtn;
-	AudioStream stream;
-
-	void updateCallback(void *buffer, unsigned int frames)
-	{
-		const size_t bytes_to_do = frames * sizeof(int16_t) * 2;
-
-		memset(buffer, 0, bytes_to_do);
-		this->pxtn->Moo(buffer, bytes_to_do, NULL);
-	}
-};
+static bool initialized = false;
 
 pxtnService* LoadPxtoneStream(const char *file, AudioStream &stream)
 {
@@ -42,30 +30,35 @@ pxtnService* LoadPxtoneStream(const char *file, AudioStream &stream)
 	int data_size;
 	unsigned char* data = LoadFileData(file, &data_size);
 
-	// Create a new service file
-	if (pxtn != nullptr)
-	{
-		if (pxtn->evels != nullptr)
-			pxtn->evels->Release();
-		delete pxtn;
-	}
-	pxtn = new pxtnService();
-
 	// init
-	if (pxtn->init() != pxtnOK)
-	{
-		TraceLog(LOG_ERROR, "PXTONE: Could not create pxtn service!");
-		delete pxtn;
-		return nullptr;
-	}
 
-	// set quality
-	if (!pxtn->set_destination_quality(2, 44100))
-	{
-		TraceLog(LOG_ERROR, "PXTONE: Could not set destination quality!");
-		delete pxtn;
-		return nullptr;
-	}
+	// Create a new service file
+	// if (!initialized)
+	// {
+		if (pxtn != nullptr)
+		{
+			if (pxtn->evels != nullptr)
+				pxtn->evels->Release();
+			delete pxtn;
+		}
+		pxtn = new pxtnService();
+
+		if (pxtn->init() != pxtnOK)
+		{
+			TraceLog(LOG_ERROR, "PXTONE: Could not create pxtn service!");
+			delete pxtn;
+			return nullptr;
+		}
+
+		// set quality
+		if (!pxtn->set_destination_quality(2, 44100))
+		{
+			TraceLog(LOG_ERROR, "PXTONE: Could not set destination quality!");
+			delete pxtn;
+			return nullptr;
+		}
+	// }
+	// initialized = true;
 
 	// load ptcop file
 	pxtnDescriptor desc;
@@ -108,6 +101,9 @@ void ExplodePxtoneStream(AudioStream& stream, pxtnService* pxtn)
 		if (pxtn->evels != nullptr)
 			pxtn->evels->Release();
 		delete pxtn;
+
+		pxtn = nullptr;
 	}
+	initialized = false;
 	UnloadAudioStream(stream);
 }

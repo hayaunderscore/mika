@@ -16,7 +16,80 @@ enum GameState {
 	GAME,
 };
 
-static int ModeLoad() { return TITLE; }
+static Font font;
+static const char* fnny = 
+"This is still a work in progess.\n\
+\n\
+Numerous things are still in development, and\n\
+therefore, a lot of stuff might change.\n\
+\n\
+For now, please enjoy what the game has so far.\n\
+I hope you like it :>\n\
+\n\
+\n\
+- haya\
+\n\
+\n\
+Press Z to start\
+";
+
+static void DrawCustomFPS()
+{
+	std::string fpsText = fmt::format("fps: {}", GetFPS());
+	DrawTextPro(font, fpsText.c_str(), {WINDOW_WIDTH - (TextLength(fpsText.c_str())/2.0f)*20.0f - 14.0f, WINDOW_HEIGHT - 28.0f}, {}, 0.0f, 20.0f, 0.5f, WHITE);
+}
+
+static int ModeLoad() 
+{ 
+	font = LoadFont(GetFont("default.fnt"));
+	float fadeOpacity = 0.0f;
+	int counter = 0;
+
+	Texture2D raylib_logo = LoadTexture(GetImage("raylib.png"));
+
+	AudioStream pxtnStream;
+	auto serv = LoadPxtoneStream("resources/mus/dataslot.ptcop", pxtnStream);
+
+	PlayAudioStream(pxtnStream);
+
+	while (!WindowShouldClose())
+	{
+		if (IsKeyPressed(KEY_Z))
+			counter++;
+
+		if (counter > 0)
+		{
+			if (fadeOpacity < 1)
+				fadeOpacity += 0.075f;
+			if (fadeOpacity > 1) fadeOpacity = 1.0f;
+			counter++;
+			serv->moo_set_master_volume(1.0f - fadeOpacity);
+		}
+
+		if (counter == 60)
+			goto goto_shit;
+
+		BeginDefaultTextureMode();
+		{
+			ClearBackground({0, 0, 22, 255});
+
+			DrawTexture(raylib_logo, WINDOW_WIDTH / 2 - (raylib_logo.width/2), WINDOW_HEIGHT / 2 - (raylib_logo.height/2), {255, 255, 255, 32});
+
+			DrawTextPro(font, fnny, {24.0f, 80.0f}, {}, 0.0f, 20.0f, 0.5f, WHITE);
+
+			DrawRectangle(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, {0, 0, 22, static_cast<unsigned char>(255 * fadeOpacity)});
+
+			DrawCustomFPS();
+		}
+		EndTextureDrawing();
+	}
+
+goto_shit:
+	StopAudioStream(pxtnStream);
+	UnloadTexture(raylib_logo);
+
+	return GAME; 
+}
 static int ModeTitle() { return SAVE; }
 static int ModeSave() { return GAME; }
 
@@ -105,12 +178,14 @@ static int ModeGame()
 	auto serv = LoadPxtoneStream("resources/mus/cubes.ptcop", pxtnStream);
 
 	PlayAudioStream(pxtnStream);
-
-	Font font = LoadFont(GetFont("default.fnt"));
+	float fadeOpacity = 1.0f;
 
 	while (!WindowShouldClose())
 	{
 		counter++;
+		if (fadeOpacity > 0)
+			fadeOpacity -= 0.075f;
+		if (fadeOpacity < 0) fadeOpacity = 0.0f;
 
 		// offsetX = sinf(counter / 16.0f) * 32;
 		// offsetY = cosf(counter / 16.0f) * 32;
@@ -172,17 +247,15 @@ static int ModeGame()
 				DrawTexture(tex, 4*16 + offsetX, 400 + offsetY, RAYWHITE);
 			EndMode2D();
 
-			//DrawText(fmt::format("{} FPS", GetFPS()).c_str(), 0, 0, 20.0f, WHITE);
-			std::string fpsText = fmt::format("fps: {}", GetFPS());
-			DrawTextPro(font, fpsText.c_str(), {WINDOW_WIDTH - (TextLength(fpsText.c_str())/2.0f)*20.0f - 14.0f, WINDOW_HEIGHT - 28.0f}, {}, 0.0f, 20.0f, 0.5f, WHITE);
+			DrawRectangle(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, {0, 0, 22, static_cast<unsigned char>(255 * fadeOpacity)});
+		
+			DrawCustomFPS();
 		}
 		EndTextureDrawing();
 	}
 
 	ExplodePxtoneStream(pxtnStream, serv);
 	DestroyMyPlay();
-
-	
 
 	UnloadFont(font);
 	UnloadRenderTexture(tilemap);

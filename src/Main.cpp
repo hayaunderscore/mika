@@ -34,7 +34,7 @@ int main(void)
 {
 	// Initialization
 	//--------------------------------------------------------------------------------------
-	InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "raylib [core] example - basic window");
+	InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Unnamed Platformer [Mika]");
 
 	SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
 

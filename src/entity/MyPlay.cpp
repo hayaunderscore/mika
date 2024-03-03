@@ -16,7 +16,11 @@ void InitMyPlay()
 
 	gPlayer.rect = {0.0f, 0.0f, 16.0f, 16.0f}; // default collision
 
-	gPlayer.maxMove = 4.0f;
+	gPlayer.maxMove = 0x4FF;
+	gPlayer.maxDash = 0x5FF;
+	gPlayer.jump = 0x500;
+	gPlayer.dash1 = 0x200 / 6.0f;
+	gPlayer.dash2 = 0x200 / 16.0f;
 
 	gPlayer.grounded = true;
 }
@@ -32,34 +36,57 @@ void UpdateMyPlay()
 	gPlayer.old_pos = gPlayer.position;
 	float maxMove = gPlayer.maxMove;
 
-	if (IsKeyDown(KEY_LEFT))
+	if (gPlayer.grounded)
 	{
-		gPlayer.dir = DIR_LEFT;
-		if (gPlayer.grounded)
-			gPlayer.velocity.x = -4 * 16 * GrabDeltaMultiplier();
-		else
-			gPlayer.velocity.x = -4 * 4 * GrabDeltaMultiplier();
-		maxMove = gPlayer.maxMove;
-	}
-	else if (IsKeyDown(KEY_RIGHT))
-	{
-		gPlayer.dir = DIR_RIGHT;
-		if (gPlayer.grounded)
-			gPlayer.velocity.x = 4 * 16 * GrabDeltaMultiplier();
-		else
-			gPlayer.velocity.x = 4 * 4 * GrabDeltaMultiplier();
-		maxMove = gPlayer.maxMove;
+		if (IsKeyDown(KEY_LEFT))
+		{
+			gPlayer.dir = DIR_LEFT;
+			if (gPlayer.xm > -gPlayer.maxDash)
+				gPlayer.xm -= gPlayer.dash1;
+		}
+		else if (IsKeyDown(KEY_RIGHT))
+		{
+			gPlayer.dir = DIR_RIGHT;
+			if (gPlayer.xm < gPlayer.maxDash)
+				gPlayer.xm += gPlayer.dash1;
+		}
+
+		if (gPlayer.xm < 0)
+		{
+			if (gPlayer.xm > -gPlayer.resist)
+				gPlayer.xm = 0;
+			else
+				gPlayer.xm += gPlayer.resist;
+		}
+		if (gPlayer.xm > 0)
+		{
+			if (gPlayer.xm < gPlayer.resist)
+				gPlayer.xm = 0;
+			else
+				gPlayer.xm -= gPlayer.resist;
+		}
 	}
 	else
 	{
-		gPlayer.velocity.x = Lerp(gPlayer.velocity.x, 0, GrabDeltaMultiplier()*16);
+		if (IsKeyDown(KEY_LEFT))
+		{
+			gPlayer.dir = DIR_LEFT;
+			if (gPlayer.xm > -gPlayer.maxDash)
+				gPlayer.xm -= gPlayer.dash2;
+		}
+		else if (IsKeyDown(KEY_RIGHT))
+		{
+			gPlayer.dir = DIR_RIGHT;
+			if (gPlayer.xm < gPlayer.maxDash)
+				gPlayer.xm += gPlayer.dash2;
+		}
 	}
 	
-	gPlayer.velocity.x = fminf(abs(gPlayer.velocity.x), maxMove) * (gPlayer.dir == DIR_LEFT ? -1 : 1);
+	//gPlayer.velocity.x = fminf(abs(gPlayer.velocity.x), maxMove) * (gPlayer.dir == DIR_LEFT ? -1 : 1);
 
 	if (IsKeyDown(KEY_Z) && gPlayer.grounded)
 	{
-		gPlayer.velocity.y -= 150 * GrabDeltaMultiplier();
+		gPlayer.velocity.y -= 0x600;
 	}
 
 	// we are no longer grounded
@@ -67,10 +94,24 @@ void UpdateMyPlay()
 		gPlayer.grounded = false;
 
 	// grav
-	gPlayer.velocity.y += 6 * GrabDeltaMultiplier();
+	if (gPlayer.ym < 0 && IsKeyDown(KEY_Z))
+		gPlayer.velocity.y += 0x30;
+	else
+		gPlayer.velocity.y += 0x60;
 
-	gPlayer.position.x += gPlayer.velocity.x;
-	gPlayer.position.y += gPlayer.velocity.y;
+	if (gPlayer.xm < -gPlayer.maxMove)
+		gPlayer.xm = -gPlayer.maxMove;
+	if (gPlayer.ym < -gPlayer.maxMove)
+		gPlayer.ym = -gPlayer.maxMove;
+
+	if (gPlayer.xm > gPlayer.maxMove)
+		gPlayer.xm = gPlayer.maxMove;
+	if (gPlayer.ym > gPlayer.maxMove)
+		gPlayer.ym = gPlayer.maxMove;
+
+	if (!(gPlayer.xm <= gPlayer.resist && gPlayer.xm >= -gPlayer.resist))
+		gPlayer.position.x += gPlayer.velocity.x / 0x200 * GrabDeltaMultiplier()*60;
+	gPlayer.position.y += gPlayer.velocity.y / 0x200 * GrabDeltaMultiplier()*60;
 }
 
 // TODO: Make y position not the point where the player touches the ground??????

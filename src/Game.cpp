@@ -107,12 +107,28 @@ static int ModeGame()
 			UpdateColBetweenPlayerRect(tile_bottom_right);
 		}
 
+		if (gPlayer.y - gPlayer.rect.height > level->size.y)
+		{
+			// Init player
+			InitMyPlay();
+
+			// Set player position
+			const auto& spawnP = AcquireEntity("Player_Spawn");
+			if (spawnP != nullptr)
+			{
+				const auto& spawnPos = spawnP->getPosition();
+
+				gPlayer.x = spawnPos.x;
+				gPlayer.y = spawnPos.y + gPlayer.rect.height / 2;
+			}
+		}
+
 		UpdateCameraCenterInsideMap(cam, *level, WINDOW_WIDTH, WINDOW_HEIGHT);
 		cam.zoom = 3.0f;
 
 		BeginDefaultTextureMode();
 		{
-			ClearBackground(RAYWHITE);
+			ClearBackground(DARKBLUE);
 			DrawText(fmt::format("{} FPS", GetFPS()).c_str(), 0, 0, 20.0f, BLACK);
 
 			BeginMode2D(cam);
@@ -121,9 +137,9 @@ static int ModeGame()
 				}, {0.0f, 0.0f}, 0.0f, RAYWHITE);
 
 				DrawMyPlay();
-			EndMode2D();
 
-			// DrawTexture(tex, (WINDOW_WIDTH / 2) - (tex.width / 2) + offsetX, (WINDOW_HEIGHT / 2) - (tex.height / 2) + offsetY, RAYWHITE);
+				DrawTexture(tex, 4*16 + offsetX, 400 + offsetY, RAYWHITE);
+			EndMode2D();
 		}
 		EndTextureDrawing();
 	}

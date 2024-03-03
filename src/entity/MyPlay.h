@@ -15,6 +15,11 @@ typedef struct MYPLAY {
 	float& ym = velocity.y; // reference to `velocity.y`
 
 	float maxMove; // max
+	float maxDash; // max
+	float resist = 0x200 / 10.0f;
+	float jump;
+	float dash1;
+	float dash2;
 
 	int flags; // TODO: Add enums for this
 	Direction dir; // current direction

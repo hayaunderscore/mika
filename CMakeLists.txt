@@ -28,7 +28,7 @@ set(CMAKE_AUTORCC ON)
 
 # Glob all current source files
 # TODO: This might be a bad idea, but do it anyway for now
-file(GLOB_RECURSE MIKA_SOURCES CONFIGURE_DEPENDS "${MIKA_SOURCE_DIR}/*.cpp")
+file(GLOB_RECURSE MIKA_SOURCES CONFIGURE_DEPENDS "${MIKA_SOURCE_DIR}/*.cpp" "${MIKA_SOURCE_DIR}/icon.rc")
 
 # Declare executable woohoo
 add_executable(${PROJECT_NAME})

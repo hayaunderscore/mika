@@ -101,8 +101,6 @@ void ExplodePxtoneStream(AudioStream& stream, pxtnService* pxtn)
 		if (pxtn->evels != nullptr)
 			pxtn->evels->Release();
 		delete pxtn;
-
-		pxtn = nullptr;
 	}
 	initialized = false;
 	UnloadAudioStream(stream);

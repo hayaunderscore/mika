@@ -34,7 +34,10 @@ int main(void)
 {
 	// Initialization
 	//--------------------------------------------------------------------------------------
+	Image icon = LoadImage("resources/img/icon.png");
+	// SetWindowState(FLAG_WINDOW_UNDECORATED | FLAG_WINDOW_TRANSPARENT);
 	InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Unnamed Platformer [Mika]");
+	SetWindowIcon(icon);
 
 	SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
 
@@ -48,6 +51,7 @@ int main(void)
 
 	// De-Initialization
 	//--------------------------------------------------------------------------------------
+	UnloadImage(icon);
 	CloseAudioDevice();
 	UnloadRenderTexture(defaultRender);
 	CloseWindow();        // Close window and OpenGL context

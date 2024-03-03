@@ -6,6 +6,10 @@
 
 MYPLAY gPlayer;
 
+// sounds
+static Sound jumpSound = {};
+static Sound landSound = {};
+
 void InitMyPlay()
 {
 	gPlayer.position = {0.0f}; // init vector
@@ -23,6 +27,9 @@ void InitMyPlay()
 	gPlayer.dash2 = 0x200 / 16.0f;
 
 	gPlayer.grounded = true;
+
+	jumpSound = LoadSound(GetSound("jump.wav"));
+	landSound = LoadSound(GetSound("land.wav"));
 }
 
 static inline float GrabDeltaMultiplier()
@@ -65,6 +72,7 @@ void UpdateMyPlay()
 			else
 				gPlayer.xm -= gPlayer.resist;
 		}
+		gPlayer.coyote_time = 0.4f;
 	}
 	else
 	{
@@ -80,13 +88,27 @@ void UpdateMyPlay()
 			if (gPlayer.xm < gPlayer.maxDash)
 				gPlayer.xm += gPlayer.dash2;
 		}
+
+		if (gPlayer.coyote_time > 0)
+			gPlayer.coyote_time -= GrabDeltaMultiplier();
 	}
 	
 	//gPlayer.velocity.x = fminf(abs(gPlayer.velocity.x), maxMove) * (gPlayer.dir == DIR_LEFT ? -1 : 1);
 
-	if (IsKeyDown(KEY_Z) && gPlayer.grounded)
+	if (IsKeyPressed(KEY_Z) && !gPlayer.grounded)
+		gPlayer.jump_buffer = 0.2f;
+
+	if (gPlayer.jump_buffer > 0)
+		gPlayer.jump_buffer -= GrabDeltaMultiplier();
+
+	// TraceLog(LOG_INFO, "coyote time: %.1f jump buffer time: %.1f", gPlayer.coyote_time, gPlayer.jump_buffer);
+
+	if ((IsKeyPressed(KEY_Z) || (gPlayer.jump_buffer > 0.0f && gPlayer.grounded)) && (gPlayer.coyote_time > 0.0f || gPlayer.grounded))
 	{
 		gPlayer.velocity.y -= 0x600;
+		gPlayer.coyote_time = 0.0f;
+		gPlayer.jump_buffer = 0.0f;
+		PlaySound(LoadSoundAlias(jumpSound));
 	}
 
 	// we are no longer grounded
@@ -142,6 +164,8 @@ bool UpdateColBetweenPlayerRect(Rectangle col, bool passable)
 		newPos.y = col.y;
 		// obligatory ground check
 		// we want to JUMP bitch
+		if (!gPlayer.grounded)
+			PlaySound(LoadSoundAlias(landSound));
 		gPlayer.grounded = true;
 	}
 	// hit ceiling
@@ -174,5 +198,6 @@ void DrawMyPlay()
 
 void DestroyMyPlay()
 {
-	// nothing for now
+	UnloadSound(jumpSound);
+	UnloadSound(landSound);
 }

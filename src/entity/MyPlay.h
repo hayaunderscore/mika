@@ -24,6 +24,9 @@ typedef struct MYPLAY {
 	int flags; // TODO: Add enums for this
 	Direction dir; // current direction
 
+	float coyote_time = 0;
+	float jump_buffer = 0;
+
 	bool grounded;
 
 	Rectangle rect; // hitbox

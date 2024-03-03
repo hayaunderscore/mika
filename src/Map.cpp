@@ -3,6 +3,7 @@
 #include "LDtkLoader/Entity.hpp"
 #include "LDtkLoader/Level.hpp"
 #include "LDtkLoader/Project.hpp"
+#include "LDtkLoader/DataTypes.hpp"
 #include "raylib.h"
 #include <exception>
 
@@ -67,12 +68,12 @@ TileInfo AcquireTileInfo(int x, int y, std::string layer)
 	TileInfo defaultVal = {ldtk::Tile::None, {}};
 	const auto& _layer = level->getLayer(layer);
 
+	// out of bounds!
+	if (x > level->size.x || y > level->size.y) return defaultVal;
+
 	// Returns tile ID using world position
 	x /= _layer.getCellSize();
 	y /= _layer.getCellSize();
-
-	// out of bounds!
-	if (x > level->size.x || y > level->size.y) return defaultVal;
 
 	const auto& tile = _layer.getTile(x, y);
 	if (tile == ldtk::Tile::None) return defaultVal;
@@ -83,6 +84,36 @@ TileInfo AcquireTileInfo(int x, int y, std::string layer)
 		{
 			float(position.x),
 			float(position.y),
+			float(_layer.getCellSize()),
+			float(_layer.getCellSize())
+		}
+	};
+}
+
+auto operator==(const ldtk::IntGridValue& l, const ldtk::IntGridValue& r) -> bool {
+    return (l.value == r.value) && (l.value == r.value);
+}
+
+IntGridInfo AcquireIntGridInfo(int x, int y, std::string layer)
+{
+	IntGridInfo defaultVal = {ldtk::IntGridValue::None, {}};
+	const auto& _layer = level->getLayer(layer);
+
+	// out of bounds!
+	if (x > level->size.x || y > level->size.y) return defaultVal;
+
+	// Returns tile ID using world position
+	x /= _layer.getCellSize();
+	y /= _layer.getCellSize();
+
+	const auto& intgrid = _layer.getIntGridVal(x, y);
+	if (intgrid == ldtk::IntGridValue::None) return defaultVal;
+
+	return {
+		intgrid,
+		{
+			float(x * _layer.getCellSize()),
+			float(y * _layer.getCellSize()),
 			float(_layer.getCellSize()),
 			float(_layer.getCellSize())
 		}

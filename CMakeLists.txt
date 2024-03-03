@@ -18,6 +18,8 @@ add_subdirectory("${MIKA_EXTERNAL_DIR}/fmt")
 add_subdirectory("${MIKA_EXTERNAL_DIR}/ldtk")
 # Add unordered_dense
 add_subdirectory("${MIKA_EXTERNAL_DIR}/hashmap")
+# Add pxtone
+add_subdirectory("${MIKA_EXTERNAL_DIR}/pxtone")
 
 # Set C++ standard to 17
 set(CMAKE_CXX_STANDARD 17)
@@ -33,7 +35,7 @@ file(GLOB_RECURSE MIKA_SOURCES CONFIGURE_DEPENDS "${MIKA_SOURCE_DIR}/*.cpp" "${M
 # Declare executable woohoo
 add_executable(${PROJECT_NAME})
 target_sources(${PROJECT_NAME} PRIVATE ${MIKA_SOURCES})
-target_include_directories(${PROJECT_NAME} PRIVATE ${MIKA_SOURCE_DIR})
+target_include_directories(${PROJECT_NAME} PRIVATE ${MIKA_SOURCE_DIR} ${PXTONE_HEADER_DIR})
 
 # Statically link our standard libraries
 if(MSVC)
@@ -45,7 +47,7 @@ else(MSVC)
 endif(MSVC)
 
 # Link all dependencies
-target_link_libraries(mika PRIVATE raylib unordered_dense::unordered_dense fmt::fmt LDtkLoader)
+target_link_libraries(mika PRIVATE raylib unordered_dense::unordered_dense fmt::fmt LDtkLoader pxtone)
 
 # Set output directory
 set_target_properties(mika PROPERTIES

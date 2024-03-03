@@ -16,6 +16,11 @@ struct TileInfo {
 	Rectangle hitbox;
 };
 
+struct IntGridInfo {
+	ldtk::IntGridValue info;
+	Rectangle hitbox;
+};
+
 // Underlying tilemap for people who want it (you)
 extern ldtk::Project warudo; // This is the most dumbest reference I'm doing in this entire codebase.
 
@@ -29,3 +34,10 @@ void RenderAllTiles(RenderTexture2D renderTex, std::string layer = "Level");
 const ldtk::Entity* AcquireEntity(std::string entityIdentifier, std::string layer = "Entities");
 // Get specific tile in world space. Default layer to check for is `Level`.
 TileInfo AcquireTileInfo(int x, int y, std::string layer = "Level");
+// Get specific tile in world space. Default layer to check for is `Level`.
+IntGridInfo AcquireIntGridInfo(int x, int y, std::string layer = "Level");
+
+// pretty dumb hack
+//namespace ldtk {
+	auto operator==(const IntGridInfo& l, const IntGridInfo& r) -> bool;
+//}

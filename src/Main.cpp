@@ -39,6 +39,8 @@ int main(void)
 	SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
 
 	defaultRender = LoadRenderTexture(WINDOW_WIDTH, WINDOW_HEIGHT);
+
+	InitAudioDevice();
 	//--------------------------------------------------------------------------------------
 
 	// Main game loop
@@ -46,6 +48,7 @@ int main(void)
 
 	// De-Initialization
 	//--------------------------------------------------------------------------------------
+	CloseAudioDevice();
 	UnloadRenderTexture(defaultRender);
 	CloseWindow();        // Close window and OpenGL context
 	//--------------------------------------------------------------------------------------

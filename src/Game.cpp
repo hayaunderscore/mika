@@ -6,6 +6,8 @@
 #include "Game.h"
 
 #include "entity/MyPlay.h"
+#include "helper/pxtoneStream.h"
+#include "raymath.h"
 
 enum GameState {
 	LOAD = 1,
@@ -22,7 +24,6 @@ static int counter = 0;
 
 static void UpdateCameraCenterInsideMap(Camera2D &camera, const ldtk::Level& curLevel, int width, int height)
 {
-	camera.target = gPlayer.position;
 	camera.offset = { width/2.0f, height/2.0f + 16.0f};
 	float minX = 1000, minY = 1000, maxX = -1000, maxY = -1000;
 
@@ -34,12 +35,30 @@ static void UpdateCameraCenterInsideMap(Camera2D &camera, const ldtk::Level& cur
 	Vector2 max = GetWorldToScreen2D({ maxX, maxY }, camera);
 	Vector2 min = GetWorldToScreen2D({ minX, minY }, camera);
 
+	static float minSpeed = 30;
+	static float minEffectLength = 10;
+	static float fractionSpeed = 3.5f;
+
+	Vector2 diff = Vector2Subtract(gPlayer.position, camera.target);
+	if (gPlayer.dir == DIR_LEFT && !((max.x < width) || (min.x > 0)))
+		diff.x -= 32.0f;
+	if (gPlayer.dir == DIR_RIGHT && !((max.x < width) || (min.x > 0)))
+		diff.x += 32.0f;
+	float length = Vector2Length(diff);
+
+	if (length > minEffectLength)
+	{
+		float speed = fmaxf(fractionSpeed*length, minSpeed);
+		Vector2 final = Vector2Add(camera.target, Vector2Scale(diff, speed*GetFrameTime()/length));
+		camera.target.x = final.x;
+		camera.target.y = final.y;
+	}
+
 	if (max.x < width) camera.offset.x = width - (max.x - width/2);
 	if (max.y < height) camera.offset.y = height - (max.y - height/2) + 16.0f;
 	if (min.x > 0) camera.offset.x = width/2 - min.x;
 	if (min.y > 0) camera.offset.y = height/2 + 16.0f - min.y;
 }
-
 
 static int ModeGame()
 {
@@ -73,6 +92,22 @@ static int ModeGame()
 	cam.rotation = 0.0f;
 	cam.zoom = 1.0f;
 
+	// int pxtone_size;
+	// unsigned char* pxtone = LoadFileData("cubes.ptcop", &pxtone_size);
+	// loadPxtoneFile(pxtone, pxtone_size);
+
+	// AudioStream pxtnStream = LoadAudioStream(44100, 16, 2);
+	// SetAudioStreamCallback(pxtnStream, pxtoneCallback);
+
+	// PlayAudioStream(pxtnStream);
+
+	AudioStream pxtnStream;
+	auto serv = LoadPxtoneStream("resources/mus/cubes.ptcop", pxtnStream);
+
+	PlayAudioStream(pxtnStream);
+
+	Font font = LoadFont(GetFont("default.fnt"));
+
 	while (!WindowShouldClose())
 	{
 		counter++;
@@ -86,15 +121,15 @@ static int ModeGame()
 			const Vector2 halfsize = {gPlayer.rect.width / 2, gPlayer.rect.height / 2};
 
 			// TODO: MAKE THIS INTO AN ARRAY. THIS IS FUCKING SHIT
-			const auto& tile_top = AcquireTileInfo(origin.x, origin.y - halfsize.y - 8, "Ground").hitbox;
-			const auto& tile_bottom = AcquireTileInfo(origin.x, gPlayer.y + 8, "Ground").hitbox;
-			const auto& tile_left = AcquireTileInfo(origin.x - halfsize.x / 2 - 8, origin.y, "Ground").hitbox;
-			const auto& tile_right = AcquireTileInfo(origin.x + halfsize.x / 2 + 8, origin.y, "Ground").hitbox;
+			const auto& tile_top = AcquireIntGridInfo(origin.x, origin.y - halfsize.y - 8, "Collisions").hitbox;
+			const auto& tile_bottom = AcquireIntGridInfo(origin.x, gPlayer.y + 8, "Collisions").hitbox;
+			const auto& tile_left = AcquireIntGridInfo(origin.x - halfsize.x / 2 - 8, origin.y, "Collisions").hitbox;
+			const auto& tile_right = AcquireIntGridInfo(origin.x + halfsize.x / 2 + 8, origin.y, "Collisions").hitbox;
 
-			const auto& tile_top_left = AcquireTileInfo(origin.x - 16, origin.y - halfsize.y - 8, "Ground").hitbox;
-			const auto& tile_top_right = AcquireTileInfo(origin.x + 16, origin.y - halfsize.y - 8, "Ground").hitbox;
-			const auto& tile_bottom_left = AcquireTileInfo(origin.x - 16, origin.y + 8, "Ground").hitbox;
-			const auto& tile_bottom_right = AcquireTileInfo(origin.x + 16, origin.y + 8, "Ground").hitbox;
+			const auto& tile_top_left = AcquireIntGridInfo(origin.x - 16, origin.y - halfsize.y - 8, "Collisions").hitbox;
+			const auto& tile_top_right = AcquireIntGridInfo(origin.x + 16, origin.y - halfsize.y - 8, "Collisions").hitbox;
+			const auto& tile_bottom_left = AcquireIntGridInfo(origin.x - 16, origin.y + 8, "Collisions").hitbox;
+			const auto& tile_bottom_right = AcquireIntGridInfo(origin.x + 16, origin.y + 8, "Collisions").hitbox;
 
 			UpdateColBetweenPlayerRect(tile_top);
 			UpdateColBetweenPlayerRect(tile_bottom);
@@ -109,9 +144,6 @@ static int ModeGame()
 
 		if (gPlayer.y - gPlayer.rect.height > level->size.y)
 		{
-			// Init player
-			InitMyPlay();
-
 			// Set player position
 			const auto& spawnP = AcquireEntity("Player_Spawn");
 			if (spawnP != nullptr)
@@ -128,8 +160,7 @@ static int ModeGame()
 
 		BeginDefaultTextureMode();
 		{
-			ClearBackground(DARKBLUE);
-			DrawText(fmt::format("{} FPS", GetFPS()).c_str(), 0, 0, 20.0f, BLACK);
+			ClearBackground({0, 0, 22, 255});
 
 			BeginMode2D(cam);
 				DrawTexturePro(tilemap.texture, {0.0f, 0.0f, (float)tilemap.texture.width, (float)-tilemap.texture.height}, {
@@ -140,10 +171,20 @@ static int ModeGame()
 
 				DrawTexture(tex, 4*16 + offsetX, 400 + offsetY, RAYWHITE);
 			EndMode2D();
+
+			//DrawText(fmt::format("{} FPS", GetFPS()).c_str(), 0, 0, 20.0f, WHITE);
+			std::string fpsText = fmt::format("fps: {}", GetFPS());
+			DrawTextPro(font, fpsText.c_str(), {WINDOW_WIDTH - (TextLength(fpsText.c_str())/2.0f)*20.0f - 14.0f, WINDOW_HEIGHT - 28.0f}, {}, 0.0f, 20.0f, 0.5f, WHITE);
 		}
 		EndTextureDrawing();
 	}
 
+	ExplodePxtoneStream(pxtnStream, serv);
+	DestroyMyPlay();
+
+	
+
+	UnloadFont(font);
 	UnloadRenderTexture(tilemap);
 	UnloadTexture(tex);
 

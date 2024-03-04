@@ -4,6 +4,7 @@
 #include <raymath.h>
 
 #include "Common.h"
+#include "LDtkLoader/Entity.hpp"
 
 typedef struct MYPLAY {
 	Vector2 position; // current position
@@ -40,5 +41,6 @@ extern MYPLAY gPlayer;
 void InitMyPlay(void);
 void UpdateMyPlay(void);
 bool UpdateColBetweenPlayerRect(Rectangle col, bool passable = false);
+bool CollideEntity(const ldtk::Entity& ent);
 void DrawMyPlay(void);
 void DestroyMyPlay(void);

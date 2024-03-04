@@ -150,7 +150,7 @@
 		{
 			"identifier": "Player_Spawn",
 			"uid": 7,
-			"tags": ["spawner"],
+			"tags": [ "spawner", "passable" ],
 			"exportToToc": false,
 			"allowOutOfBounds": false,
 			"doc": null,
@@ -202,7 +202,7 @@
 			"savedSelections": [],
 			"cachedPixelData": {
 				"opaqueTiles": "11000000000000000000000000000000",
-				"averageColors": "f46bf558000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+				"averageColors": "f46bf335000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
 			}
 		},
 		{
@@ -281,7 +281,7 @@
 							"__identifier": "Player_Spawn",
 							"__grid": [2,6],
 							"__pivot": [0.5,0.5],
-							"__tags": ["spawner"],
+							"__tags": [ "spawner", "passable" ],
 							"__tile": { "tilesetUid": 8, "x": 0, "y": 240, "w": 16, "h": 16 },
 							"__smartColor": "#BE4A2F",
 							"iid": "c6aebd90-d7b0-11ee-8645-6fbe24522626",

@@ -189,6 +189,65 @@ bool UpdateColBetweenPlayerRect(Rectangle col, bool passable)
 	return true;
 }
 
+bool CollideEntity(const ldtk::Entity& ent)
+{
+	Rectangle hitbox = {gPlayer.position.x - gPlayer.rect.width / 2, gPlayer.position.y - gPlayer.rect.height, 
+				gPlayer.rect.width, gPlayer.rect.height};
+	const auto& pos = ent.getPosition(), size = ent.getSize();
+	Rectangle col = {(float)pos.x, (float)pos.y, (float)size.x, (float)size.y};
+
+	// no collision.
+	if (!CheckCollisionRecs(hitbox, col))
+		return false;
+
+	// check if we should hit
+	if (ent.hasTag("passable"))
+		return true; // early return
+
+	// if not, do collision stuff
+	Vector2& newPos = gPlayer.position;
+	Vector2& oldPos = gPlayer.old_pos;
+
+	float playerLeft = newPos.x;
+	float playerRight = newPos.x + gPlayer.rect.width;
+	float playerTop = newPos.y - gPlayer.rect.height;
+
+	float colLeft = col.x;
+	float colRight = col.x + col.width;
+	float colBottom = col.y + col.height;
+
+	// we landed (top)
+	if (oldPos.y <= col.y && newPos.y >= col.y)
+	{
+		gPlayer.velocity.y = 0;
+		newPos.y = col.y;
+		// obligatory ground check
+		// we want to JUMP bitch
+		if (!gPlayer.grounded)
+			PlaySound(LoadSoundAlias(landSound));
+		gPlayer.grounded = true;
+	}
+	// hit ceiling
+	else if ((oldPos.y - hitbox.height >= colBottom && playerTop <= colBottom))
+	{
+		gPlayer.velocity.y = 0;
+		newPos.y = colBottom + hitbox.height;
+	}
+	// slapped a wall (left or right)
+	else if (((playerRight >= colLeft) || (playerLeft <= colRight)))
+	{
+		gPlayer.velocity.x = 0;
+		if (playerRight >= colLeft && (playerLeft < colRight))
+			newPos.x = colLeft - gPlayer.rect.width / 2;
+		else
+			newPos.x = colRight + gPlayer.rect.width / 2;
+		// if both of these fail, what the fuck are you supposed to do here??????
+	}
+
+	// there was collision!
+	return true;
+}
+
 void DrawMyPlay()
 {
 	Rectangle hitbox = {gPlayer.position.x - gPlayer.rect.width / 2, gPlayer.position.y - gPlayer.rect.height, gPlayer.rect.width, gPlayer.rect.height};

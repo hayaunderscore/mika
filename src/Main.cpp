@@ -52,9 +52,10 @@ int main(void)
 	// De-Initialization
 	//--------------------------------------------------------------------------------------
 	UnloadImage(icon);
-	CloseAudioDevice();
 	UnloadRenderTexture(defaultRender);
 	CloseWindow();        // Close window and OpenGL context
+
+	CloseAudioDevice();
 	//--------------------------------------------------------------------------------------
 
 	return 0;

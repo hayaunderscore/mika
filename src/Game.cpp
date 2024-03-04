@@ -195,26 +195,30 @@ static int ModeGame()
 			const Vector2 origin = {gPlayer.x, gPlayer.y - gPlayer.rect.height / 2};
 			const Vector2 halfsize = {gPlayer.rect.width / 2, gPlayer.rect.height / 2};
 
-			// TODO: MAKE THIS INTO AN ARRAY. THIS IS FUCKING SHIT
-			const auto& tile_top = AcquireIntGridInfo(origin.x, origin.y - halfsize.y - 8, "Collisions").hitbox;
-			const auto& tile_bottom = AcquireIntGridInfo(origin.x, gPlayer.y + 8, "Collisions").hitbox;
-			const auto& tile_left = AcquireIntGridInfo(origin.x - halfsize.x / 2 - 8, origin.y, "Collisions").hitbox;
-			const auto& tile_right = AcquireIntGridInfo(origin.x + halfsize.x / 2 + 8, origin.y, "Collisions").hitbox;
+// Check collisions with layers on tiles only in a specific range of the player.
+// TODO: Do not do this.
+#define attrget(x, y) AcquireAttribute(x, y, {"Collisions", "Entities"})
 
-			const auto& tile_top_left = AcquireIntGridInfo(origin.x - 16, origin.y - halfsize.y - 8, "Collisions").hitbox;
-			const auto& tile_top_right = AcquireIntGridInfo(origin.x + 16, origin.y - halfsize.y - 8, "Collisions").hitbox;
-			const auto& tile_bottom_left = AcquireIntGridInfo(origin.x - 16, origin.y + 8, "Collisions").hitbox;
-			const auto& tile_bottom_right = AcquireIntGridInfo(origin.x + 16, origin.y + 8, "Collisions").hitbox;
+			std::array<const MapAttrInfo, 9> tile_checks = {
+				attrget(origin.x, origin.y - halfsize.y - 8), // top
+				attrget(origin.x, gPlayer.y + 8), // bottom
+				attrget(origin.x - halfsize.x / 2 - 8, origin.y), // left
+				attrget(origin.x + halfsize.x / 2 + 8, origin.y), // right
+				attrget(origin.x - 16, origin.y - halfsize.y - 8), // top left
+				attrget(origin.x + 16, origin.y - halfsize.y - 8), // top right
+				attrget(origin.x - 16, origin.y + 8), // bottom left
+				attrget(origin.x + 16, origin.y + 8), // bottom right
+				attrget(origin.x, origin.y - halfsize.y) // player itself
+			};
 
-			UpdateColBetweenPlayerRect(tile_top);
-			UpdateColBetweenPlayerRect(tile_bottom);
-			UpdateColBetweenPlayerRect(tile_left);
-			UpdateColBetweenPlayerRect(tile_right);
+#undef attrget
 
-			UpdateColBetweenPlayerRect(tile_top_left);
-			UpdateColBetweenPlayerRect(tile_top_right);
-			UpdateColBetweenPlayerRect(tile_bottom_left);
-			UpdateColBetweenPlayerRect(tile_bottom_right);
+			for (const auto& attr : tile_checks)
+			{
+				UpdateColBetweenPlayerRect(attr.intGrid.hitbox);
+				if (attr.ent != nullptr) // I forgot this the first time I made this code.
+					CollideEntity(*attr.ent);
+			}
 		}
 
 		if (gPlayer.y - gPlayer.rect.height > level->size.y)

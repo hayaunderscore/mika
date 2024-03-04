@@ -63,9 +63,33 @@ const ldtk::Entity* AcquireEntity(std::string entityIdentifier, std::string laye
 	return nullptr;
 }
 
+const ldtk::Entity* AcquireEntityFromLevel(int x, int y, std::string entityIdentifier, std::string layer)
+{
+	const auto& _layer = level->getLayer(layer);
+	if (x > level->size.x || y > level->size.y) return nullptr;
+
+	// Returns tile ID using world position
+	x /= _layer.getCellSize();
+	y /= _layer.getCellSize();
+
+	const ldtk::Entity* ent = nullptr;
+
+	for (const ldtk::Entity& spawn : _layer.getEntitiesByName(entityIdentifier)) 
+	{
+		// found an entity, break out
+		if (spawn.getGridPosition().x == x && spawn.getGridPosition().y == y)
+		{
+			ent = &spawn;
+			break;
+		}
+	}
+
+	return ent;
+}
+
 TileInfo AcquireTileInfo(int x, int y, std::string layer)
 {
-	TileInfo defaultVal = {ldtk::Tile::None, {}};
+	TileInfo defaultVal = {nullptr, {}};
 	const auto& _layer = level->getLayer(layer);
 
 	// out of bounds!
@@ -80,7 +104,7 @@ TileInfo AcquireTileInfo(int x, int y, std::string layer)
 
 	const auto& position = tile.getPosition();
 	return {
-		tile,
+		&tile,
 		{
 			float(position.x),
 			float(position.y),
@@ -96,7 +120,7 @@ auto operator==(const ldtk::IntGridValue& l, const ldtk::IntGridValue& r) -> boo
 
 IntGridInfo AcquireIntGridInfo(int x, int y, std::string layer)
 {
-	IntGridInfo defaultVal = {ldtk::IntGridValue::None, {}};
+	IntGridInfo defaultVal = {nullptr, {}};
 	const auto& _layer = level->getLayer(layer);
 
 	// out of bounds!
@@ -110,7 +134,7 @@ IntGridInfo AcquireIntGridInfo(int x, int y, std::string layer)
 	if (intgrid == ldtk::IntGridValue::None) return defaultVal;
 
 	return {
-		intgrid,
+		&intgrid,
 		{
 			float(x * _layer.getCellSize()),
 			float(y * _layer.getCellSize()),
@@ -118,4 +142,65 @@ IntGridInfo AcquireIntGridInfo(int x, int y, std::string layer)
 			float(_layer.getCellSize())
 		}
 	};
+}
+
+MapAttrInfo AcquireAttribute(int x, int y, std::vector<std::string> layers)
+{
+	if (layers.empty())
+	{
+		// literally all this does
+		for (const auto& _lay : level->allLayers())
+			layers.push_back(_lay.getName());
+	}
+
+	MapAttrInfo attr = {}; // init default attributes
+
+	for (const auto& _lay : layers)
+	{
+		const auto& _layer = level->getLayer(_lay);
+		switch (level->getLayer(_lay).getType())
+		{
+			case ldtk::LayerType::IntGrid:
+				attr.intGrid = AcquireIntGridInfo(x, y, _lay);
+				attr.hitbox = &attr.intGrid.hitbox;
+				break;
+			case ldtk::LayerType::Tiles:
+				attr.tile = AcquireTileInfo(x, y, _lay);
+				attr.hitbox = &attr.tile.hitbox;
+				break;
+			case ldtk::LayerType::Entities:
+				{
+					int temp_x = x, temp_y = y;
+					if (temp_x > level->size.x || temp_y > level->size.y) break;
+
+					// Returns tile ID using world position
+					temp_x /= _layer.getCellSize();
+					temp_y /= _layer.getCellSize();
+
+					for (const ldtk::Entity& spawn : _layer.allEntities()) 
+					{
+						// found an entity, break out
+						if (spawn.getGridPosition().x == temp_x && spawn.getGridPosition().y == temp_y)
+						{
+							attr.ent = &spawn;
+							const auto pos = &attr.ent->getPosition(), size = &attr.ent->getSize();
+							attr.ent_hitbox = {
+								(float)((*pos).x),
+								(float)((*pos).y),
+								(float)((*size).x),
+								(float)((*size).y)
+							};
+							attr.hitbox = &attr.ent_hitbox;
+							break;
+						}
+					}
+					break;
+				}
+			case ldtk::LayerType::AutoLayer:
+				// TODO: Not implemented
+				break;
+		}
+	}
+
+	return attr;
 }
